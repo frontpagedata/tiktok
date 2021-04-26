@@ -1,19 +1,20 @@
 ---
-title: "[Study name]"
+title: "InVideo TikTok Stats Study"
 author: ""
-date: "Last update: `r Sys.Date()`"
+date: "Last updated on `r Sys.Date()`"
 output:
   html_document:
     theme: paper
     highlight: kate
     code_folding: hide
+    toc: true
     toc_depth: 3
     toc_float: true
-editor_options:
-  chunk_output_type: console
+editor_options: 
+  chunk_output_type: inline
 ---
 
-
+```{=html}
 <style>
 .list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus {
   background-color: #00d188;
@@ -44,53 +45,825 @@ h3 {
   font-size: 18px;
 }
 </style>
+```
+```{r message=FALSE, warning=FALSE}
+rm(list=ls())
+## packages: remove or add your necessary packages
 
+required_packages <- c("tidyverse", "readxl", "ggthemes", "hrbrthemes", "extrafont", "plotly", "scales", "stringr", "gganimate", "here", "tidytext", "sentimentr", "scales", "DT", "here", "sm", "mblm", "glue", "fs", "knitr", "rmdformats", "janitor", "urltools", "colorspace", "pdftools", "showtext", "stringi", "fmsb")
+
+for(i in required_packages) { 
+if(!require(i, character.only = T)) {
+
+  #  if package is not existing, install then load the package
+install.packages(i, dependencies = T)
+require(i, character.only = T)
+}}
+
+remotes::install_github("gadenbuie/tiktokrmd")
+library(tiktokrmd)
+```
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.showtext = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.showtext = TRUE, dpi = 700)
+
 knitr::knit_hooks$set(inline = function(x) {
   prettyNum(x, big.mark = ",", small.mark = ",", scientific = F)
 })
-plots <- readRDS(here::here("proc_data/plots.RDS"))
-include_png <- function(item) {
-  knitr::include_graphics(
-    here::here("plots", "png", paste0(make.names(item), ".png")))
-  } 
+
+Sys.setlocale("LC_TIME", "C")
+extrafont::loadfonts(device = "win")
 ```
 
-# 1 Introduction 
-filled out by Daniel
+```{r plot_settings, message=FALSE, warning=FALSE}
 
-# 2 Methodology
-partly filled out by Daniel;
+## save plots?
+save <- TRUE
+#save <- FALSE
 
-##### Step 1 xxxx
+## quality of png's
+dpi <- 750
 
-##### Step 2 Data Mining
-
-##### Step 3 Data Enrichment
-
-##### Step 4 Data Analysis
-should be filled out by you; here explanation about which models have been used etc. 
-
-#### Overview of the data
-here basic overview of the data set (missing values, number of observations, number of variables, etc.). Plots/tables can be used for that purpose
-
-# 3 Research Findings 
-
-# X Annex
+## font adjust; please adjust to client´s website
+#extrafont::loadfonts(device = "win", quiet = TRUE)
+#font_add_google("Montserrat", "Montserrat")
+# font_add_google("Overpass", "Overpass")
+# font_add_google("Overpass Mono", "Overpass Mono")
 
 
 
-```{r name_plot, echo=FALSE}
-  knitr::include_graphics(here::here("plots", "png", "name_example.png"))
+## theme updates; please adjust to client´s website
+#theme_set(ggthemes::theme_clean(base_size = 15))
+theme_set(ggthemes::theme_clean(base_size = 15, base_family = "Montserrat Light"))
+
+
+theme_update(plot.margin = margin(30, 30, 30, 30),
+             plot.background = element_rect(color = "white",
+                                            fill = "white"),
+             plot.title = element_text(size = 20,
+                                       face = "bold",
+                                       lineheight = 1.05,
+                                       hjust = .5,
+                                       margin = margin(10, 0, 25, 0)),
+             plot.title.position = "plot",
+             plot.caption = element_text(color = "grey40",
+                                         size = 9,
+                                         margin = margin(20, 0, -20, 0)),
+             plot.caption.position = "plot",
+             axis.line.x = element_line(color = "black",
+                                        size = .8),
+             axis.line.y = element_line(color = "black",
+                                        size = .8),
+             axis.title.x = element_text(size = 16,
+                                         face = "bold",
+                                         margin = margin(t = 20)),
+             axis.title.y = element_text(size = 16,
+                                         face = "bold",
+                                         margin = margin(r = 20)),
+             axis.text = element_text(size = 11,
+                                      color = "black",
+                                      face = "bold"),
+             axis.text.x = element_text(margin = margin(t = 10)),
+             axis.text.y = element_text(margin = margin(r = 10)),
+             axis.ticks = element_blank(),
+             panel.grid.major.x = element_line(size = .6,
+                                               color = "#eaeaea",
+                                               linetype = "solid"),
+             panel.grid.major.y = element_line(size = .6,
+                                               color = "#eaeaea",
+                                               linetype = "solid"),
+             panel.grid.minor.x = element_line(size = .6,
+                                               color = "#eaeaea",
+                                               linetype = "solid"),
+             panel.grid.minor.y = element_blank(),
+             panel.spacing.x = unit(4, "lines"),
+             panel.spacing.y = unit(2, "lines"),
+             legend.position = "top",
+             legend.title = element_text(family = "Montserrat",
+                                         color = "black",
+                                         size = 14,
+                                         margin = margin(5, 0, 5, 0)),
+             legend.text = element_text(family = "Montserrat",
+                                        color = "black",
+                                        size = 11,
+                                        margin = margin(4.5, 4.5, 4.5, 4.5)),
+             legend.background = element_rect(fill = NA,
+                                              color = NA),
+             legend.key = element_rect(color = NA, fill = NA),
+             #legend.key.width = unit(5, "lines"),
+             #legend.spacing.x = unit(.05, "pt"),
+             #legend.spacing.y = unit(.55, "pt"),
+             #legend.margin = margin(0, 0, 10, 0),
+             strip.text = element_text(face = "bold",
+                                       margin = margin(b = 10)))
+
+## theme settings for flipped plots
+theme_flip <-
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_line(size = .6,
+                                          color = "#eaeaea"))
+
+## theme settings for maps
+theme_map <- 
+  theme_void(base_family = "Montserrat") +
+  theme(legend.direction = "horizontal",
+        legend.box = "horizontal",
+        legend.margin = margin(10, 10, 10, 10),
+        legend.title = element_text(size = 17, 
+                                    face = "bold"),
+        legend.text = element_text(color = "grey33",
+                                   size = 12),
+        plot.margin = margin(15, 5, 15, 5),
+        plot.title = element_text(face = "bold",
+                                  size = 20,
+                                  hjust = .5,
+                                  margin = margin(30, 0, 10, 0)),
+        plot.subtitle = element_text(face = "bold",
+                                     color = "grey33",
+                                     size = 17,
+                                     hjust = .5,
+                                     margin = margin(10, 0, -30, 0)),
+        plot.caption = element_text(size = 14,
+                                    color = "grey33",
+                                    hjust = .97,
+                                    margin = margin(-30, 0, 0, 0)))
+
+## numeric format for labels
+num_format <- scales::format_format(big.mark = ",", small.mark = ",", scientific = F)
+
+## main color backlinko
+bl_col <- "#00d188"
+bl_dark <- darken(bl_col, .3, space = "HLS")
+
+## colors + labels for interval stripes
+int_cols <- c("#bce2d5", "#79d8b6", bl_col, "#009f66", "#006c45", "#003925")
+int_perc <- c("100%", "95%", "75%", "50%", "25%", "5%")
+
+## colors for degrees (Bachelors, Massters, Doctorate in reverse order)
+cols_degree <- c("#e64500", "#FFCC00", darken(bl_col, .1))
+
+## gradient colors for position
+colfunc <- colorRampPalette(c(bl_col, "#bce2d5"))
+pos_cols <- colfunc(10)
 ```
 
-```{r name_table, echo=FALSE}
-  title_description_table <- read.csv(here::here("plots", "csv", "name_example_table.csv"), stringsAsFactors=F)
-knitr::kable(title_description_table, caption = "Basic information about XXX")
+```{r message=FALSE, warning=FALSE}
+brands = read_csv("../raw_data/brands_list.csv", col_types="cciccddddddd")
+top_videos = read_csv("../raw_data/top_videos.csv", col_types="cicddddcc")
+annotations = read_csv("../raw_data/video_annotations.csv", col_types="")
 ```
 
+```{r message=FALSE, warning=FALSE}
+# Aggregate similar categories into one
+brands = brands %>%
+  mutate(
+  category = ifelse(category %in% c("Tech", "IT Services"), "Tech & IT", 
+    ifelse(category %in% c("Restaurants", "Soft Drinks", "Food", "Beers", "Spirits"), "Food & Beverages",
+    ifelse(category %in% c("Healthcare", "Pharma"), "Healthcare & Pharma", 
+    ifelse(category == "Cosmetics & Personal Care", "Cosmetics", category)
+  )))) %>%
+  filter(brand_name != "Queen City Alchemy")
+```
 
+```{r message=FALSE, warning=FALSE}
+# Filter out brands with no account, fans, or posts
+# And compute some aggregations/averages
+brands_with_posts = brands %>%
+  filter(!is.na(tiktok_handle)) %>%
+  filter(!is.na(fans)) %>%
+  filter(!is.na(total_posts)) %>%
+  mutate(avg_views = total_views/total_posts) %>% # Average views per post
+  mutate(total_engagement = total_likes + total_comments + total_shares) %>% # Engagement = Likes + Shares + Comments
+  mutate(avg_engagement = total_engagement/total_posts) # Avg. engagement per post
+```
 
+```{r}
+## Changing variable in thousands to have actual values
+top_videos = top_videos %>% 
+    mutate_at(vars(contains('_000s')), ~ .*1000)
 
+change_colnames = function(s) {
+  paste(s)
+  ifelse((str_sub(s, -5) == "_000s"), str_sub(s, 1, -6), s)
+}
+
+top_videos = top_videos %>% 
+  rename_with(change_colnames)
+```
+
+```{r}
+boolean_cols = colnames(annotations)[-1:-6]
+
+annotations = annotations %>% 
+  filter_all(any_vars(!is.na(.))) %>% # Removes rows where all the variables are NA
+  mutate_at(boolean_cols, ~ifelse(is.na(.), FALSE, TRUE))
+```
+
+```{r}
+## Fixing data quality issue
+annotations = annotations %>%
+  mutate(uses_sex = ifelse(
+    str_detect(link, "@victoriassecret"),
+    TRUE,
+    uses_sex
+  ))
+```
+
+# TikTok Guide for Businesses (2021)
+
+[TODO: Other title suggestions]
+
+With over 2 billion downloads and over 1 billion monthly active users, TikTok has marked itself as one of the biggest social media platform in just a couple of years.
+
+And while the platform itself enjoys immense popularity, especially among Gen Z users, businesses have been slow to expand to their social media marketing machines to the nascent video sharing platform.
+
+To help you tailor your TikTok marketing strategy, we studied over 650 videos from the top brands to figure out how companies manage their TikTok presence and what works on the platform and what doesn't.
+
+Specifically, we looked at
+
+-   which of the most valuable brands had a TikTok presence
+-   how often these brands were posting on TikTok
+-   channel and video-level metrics for these brands
+-   what the style, tone, and design of the best performing TikTok videos were.
+
+Without further ado, let's dive into what we found.
+
+## Half of the Top Brands Don't Have a TikTok Presence Yet
+
+Of the 317 brands we studied, nearly **50% either didn't have a TikTok account or had zero posts** on their account. This included billion-dollar brands like Google, Facebook, YouTube, IKEA, Nestlé, Audi, Toyota, and more.
+
+That's a rather significant gap in the market and **establishing an early TikTok presence** can be the source of a **major marketing advantage** for your brand and potentially even allow you to leapfrog much larger brands who've simply ignored the platform so far.
+
+```{r}
+counts = as.integer(c(
+brands %>% 
+  count(),
+
+brands %>% 
+  filter(is.na(tiktok_handle)) %>%
+  count(),
+
+brands %>%
+  filter(is.na(total_posts)) %>%
+  count(),
+
+brands %>%
+  filter(is.na(fans)) %>%
+  count()
+))
+
+data = bind_cols(label=c("Brands studied", "Brands without a TikTok account", "Brands with no posts", "Brands with no followers"), counts=counts)
+
+data %>%
+  arrange(counts) %>%
+  mutate(counts = 100*counts/dim(brands)[1]) %>%
+  mutate(label=factor(label, levels=label)) %>%
+  ggplot(aes(x=label, y=counts)) +
+    geom_segment(aes(xend=label, yend=0)) +
+    geom_point( size=4, color="orange") +
+    coord_flip() +
+    labs(title="50% of the major brands have no TikTok presence", x=NULL, y="% of brands")
+```
+
+## The best brands post around 3 times per week 
+
+```{r, include=FALSE}
+# brands_with_posts %>%
+#   filter(brand_name != "Queen City Alchemy") %>%
+#   # filter(avg_posts_per_week <= 10) %>% 
+#   ggplot(aes(x=avg_posts_per_week, y=avg_views)) +
+#     geom_point() +
+#     geom_smooth(method="lm") +
+#     scale_y_log10()
+
+thresh = 1e4
+
+avg_posts_summary = brands_with_posts %>%
+  filter(brand_name != "Queen City Alchemy") %>%
+  filter(!is.na(avg_posts_per_week)) %>%
+  filter(total_posts >= 5) %>%
+  filter(avg_views >= thresh) %>%
+  summarise(
+    mean_weekly_posts = mean(avg_posts_per_week), 
+    min_weekly_posts = min(avg_posts_per_week), 
+    max_weekly_posts = max(avg_posts_per_week),
+    median_weekly_posts = median(avg_posts_per_week)
+  )
+avg_posts_summary
+```
+
+```{r}
+brands_with_posts %>%
+  filter(brand_name != "Queen City Alchemy") %>%
+  filter(!is.na(avg_posts_per_week)) %>%
+  filter(total_posts >= 5) %>%
+  filter(avg_views >= thresh) %>%
+  ggplot(aes(x=avg_posts_per_week)) +
+    geom_histogram(binwidth=1) +
+    labs(x="Avg. posts per week", y="Number of brands")
+```
+
+As with YouTube, TikTok's algorithm rewards frequent and consistent posts. We found that, on average, the best-performing TikTok brands (those with 1 million or more average views per post) released a **new video 3.16 times per week**.
+
+While doing more than 5 posts per week is likely not going to make much of a difference, there are exceptions.
+
+Over to the very right of the graph is Amazon Prime Video, which not only posts more than 40 times per week but also draws an average of 1.32 million views per post.
+
+These are mostly snippets and previews of its current and upcoming shows, however, and it's unlikely that most business will have as much content as the streaming platform.
+
+```{r}
+brands_with_posts %>%
+  filter(brand_name %in% c("Netflix", "Amazon Prime Video")) %>%
+  mutate(total_views = total_views/1e6) %>%
+  ggplot(aes(x=brand_name, y=total_views)) +
+    geom_col() +
+    labs(title="Consistency makes a big difference", x=NULL, y="Total views (millions)")
+```
+
+Interestingly, the only other brand that could take Amazon Prime on, Netflix, posts far less often (8.5 times per week) and the difference shows. While Netflix's TikTok account has accumulated a total of 419M views, Amazon Prime sits at a pretty 2.2 trillion views, largely because of its more consistent rate of posting.
+
+**Key Takeaway:** post at least three times a week and make sure to be more frequent and consistent than your competitors.
+
+## Engagement is Correlated with Views
+
+```{r}
+brands_with_posts %>%
+  ggplot(aes(x=avg_views, y=avg_engagement)) +
+    geom_point() +
+    geom_smooth(method="lm") +
+    scale_x_log10() +
+    scale_y_log10() +
+    labs(x="Avg. views per post", y="Avg. engagement per post")
+```
+
+It shouldn't come as a surprise that engagements are highly correlated with views. The larger your audience, the more likely you are to get shares, likes, and comments for your videos.
+
+In short, going viral is easier with a larger following and building a large and dedicated fan base should be one of the top priorities for your channel.
+
+## How many views is a single follower worth?
+
+The number of followers a brand has is highly correlated with the number of views their posts got on average.
+
+You obviously want to build as large of a following as possible, but this begs the question: just how important is gaining one additional follower?
+
+```{r}
+reg = lm(log10(avg_views) ~ log10(fans), data=brands_with_posts)
+fans_avg_views_slope = round(coefficients(reg)[2], 2)
+
+brands_with_posts %>%
+  ggplot(aes(x=fans, y=avg_views)) +
+    geom_point() +
+    geom_smooth(method="lm", formula=y~x) +
+    scale_x_log10() +
+    scale_y_log10() +
+    labs(x="Number of fans", y="Avg. views per post")
+```
+
+Say you could run a campaign which cost you \$X to get one more follower. What would the return on investment for that money be? Can we quantify that?
+
+Thankfully for you, we did just that, and based on the regression line you see above, a **1% increase in followers corresponds to a `r fans_avg_views_slope`% increase in average views per post**.
+
+Say you currently have 100 followers and you paid \$200 to get an additional 20 followers. That's a 20% increase in followers and you can expect, in return, an approximately `r 20*fans_avg_views_slope`% increase in the number of views your posts generate.
+
+## Tech, Food, and Gaming brands perform the best on TikTok
+
+[TODO: Add text for this section]
+
+```{r}
+brands_with_posts %>%
+  ggplot(aes(x=fans, y=avg_views, color=category)) +
+    geom_point() +
+    scale_x_log10() +
+    scale_y_log10()
+
+brands_with_posts %>%
+  group_by(category) %>%
+  summarise(avg_views_per_video_per_category = mean(avg_views)) %>%
+  arrange(avg_views_per_video_per_category) %>%
+  tail(10) %>%
+  mutate(category=factor(category, levels=category)) %>%
+  ggplot(aes(x=category, y=avg_views_per_video_per_category)) +
+    geom_segment( aes(xend=category, yend=0)) +
+    geom_point( size=4, color="orange") +
+    coord_flip() +
+    labs(title="How popular are different types of brands?", x=NULL, y="Avg. views per video")
+```
+
+## Music Makes the Video
+
+TikTok videos thrive on music. Of the nearly 650 videos we studied, nearly 80% of the posts had music.
+
+```{r}
+annotations %>%
+  mutate(has_music = ifelse(music_type == "No music", "No music", "Has Music")) %>%
+  group_by(has_music) %>%
+  count() %>%
+  ungroup() %>%
+  arrange(n) %>%
+  mutate(frac = n/sum(n)) %>%
+  mutate(ymax = cumsum(frac)) %>%
+  mutate(ymin = lag(ymax)) %>%
+  mutate(ymin = ifelse(is.na(ymin), 0, ymin)) %>%
+  mutate(label = paste0(has_music, ": ", 100*round(frac, 2), "%")) %>%
+  mutate(label_position = (ymax + ymin)/2) %>%
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=has_music)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=label_position, label=label), size=6) +
+    scale_fill_brewer(palette=8) +
+    coord_polar(theta="y") +
+    xlim(c(2, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+```
+
+Additionally, it seems that upbeat music is by far the most popular choice, which isn't all that surprising when you consider that TikTok owes a large part of its popularity to dance videos.
+
+```{r}
+annotations %>%
+  group_by(music_type) %>%
+  count() %>%
+  ggplot(aes(x=music_type, y=n)) +
+    geom_col() +
+    labs(
+      title="How popular are different types of music?",
+      x=NULL,
+      y="Number of videos"
+    )
+```
+
+```{r}
+music_df = annotations %>%
+  group_by(music_type) %>%
+  count() %>%
+  bind_rows(
+    annotations %>%
+      mutate(music_type = ifelse(music_type == "No music", "No music", "Has Music")) %>%
+      group_by(music_type) %>%
+      count()
+  ) %>%
+  ungroup() %>%
+  mutate(frac = n/dim(annotations)[1])
+
+upbeat_over_has_music = music_df %>% filter(music_type == "Upbeat") %>% select(n) / music_df %>% filter(music_type == "Has Music") %>% select(n)
+```
+
+<s>As the folks from Aldrich Landscape will tell you, some Tai Verdes can do wonders for your post. At the time of writing, this video from the landscaping firm had gotten 20.9M views and 3.1M likes! Quite a feat for a simple lawn care video!</s>
+
+Add some music and even something as mundane as you cutting grass can attract 20.9M views. In fact, the folks at Adrlich Landscape have made a whole channel around this --- and they're doing extremely well on the platform. Just goes to show that you don't need to be a multi-billion dollar business to succeed on social media; a little bit of creativity goes a long way.
+
+```{r, include=FALSE, echo=FALSE}
+top_videos %>% 
+  filter(brand_name == "Aldrich Landscape") %>% 
+  inner_join(annotations) %>% arrange(desc(views)) %>% 
+  select(link, views, sound_track)
+```
+
+```{r}
+tiktok_embed("https://www.tiktok.com/@aldrichlandscape/video/6868589417318075653")
+```
+
+```{r, include=FALSE, echo=FALSE}
+## Looks like no one song was particularly popular across all videos
+annotations %>%
+  filter(!str_detect(sound_track, "[oO]riginal [sS]ound")) %>%
+  group_by(sound_track) %>%
+  count() %>%
+  arrange(desc(n))
+```
+
+## Description Text Doesn't Influence Views
+
+-   Since there's no relation, should we shouldn't include it in the final draft?
+-   Maybe just show a histogram?
+
+```{r}
+annotations %>%
+  mutate(text_length = stri_length(video_text)) %>%
+  inner_join(top_videos, by="link") %>%
+  ggplot(aes(x=text_length, y=views)) +
+    geom_point() +
+    geom_smooth(method="lm") +
+    scale_y_log10() +
+    labs(x="Length of description", y="Views")
+```
+
+```{r}
+annotations %>%
+  mutate(text_length = stri_length(video_text)) %>%
+  inner_join(top_videos, by="link") %>%
+  ggplot(aes(x=text_length)) +
+    geom_histogram() +
+    labs(x="Length of description", y="Number of videos")
+```
+
+## Hashtags
+
+-   Relevant? Should we keep it?
+
+```{r}
+annotations %>%
+  mutate(num_hashtags = str_count(video_text, "#")) %>%
+  inner_join(top_videos, by="link") %>%
+  ggplot(aes(x=num_hashtags, y=views)) +
+    geom_point() +
+    geom_smooth(method="lm") +
+    scale_y_log10() +
+    labs(x="Number of hashtags in description", y="Views")
+```
+
+## Is there a Recipe For the Perfect TikTok Post?
+
+All this begs the question: is there a recipe for crafting a TikTok post that's just right?
+
+While there obviously isn't a perfect formula for creating a viral video --- if there was, everyone would be using it! --- we did study the tone, style, and content of the top 5 videos from each brand to get a identify the common traits shared by the most successful TikTok videos.
+
+```{r}
+count_values = function(col_name, df) {
+  df %>%
+    filter_at(c(col_name), ~.==TRUE) %>%
+    count(name=col_name)
+}
+
+joined_annotations = annotations %>%
+    inner_join(top_videos, by="link")
+
+recipe_counts = bind_cols(map(boolean_cols, count_values, joined_annotations)) %>%
+  pivot_longer(everything(), names_to="video_type", values_to="count") %>%
+  mutate(count = 100 * count/dim(joined_annotations)[1]) %>%
+  arrange(desc(count)) %>% 
+  mutate(id = row_number())
+
+circular_df_1 = recipe_counts  %>%
+  head(10) # Keep this or not?
+
+text_labels = sapply(circular_df_1$video_type, switch,
+  shows_product="a product",
+  onScreen_text="on-screen text",
+  funny="funny content",
+  features_influencer="an influencer",
+  features_celebrity="a celebrity",
+  suspenseful="suspense",
+  animated="animation",
+  dancing="dancing",
+  tutorial="a tutorial",
+  conversation="a conversation",
+  challenge_adventure="adventure",
+  promotes_brand_event="a brand event",
+  relaxing="a relaxing feeling",
+  features_animal="an animal",
+  emojis="emojis",
+  shows_staff="the brand's employees",
+  graphics_overlay="a graphic overlay",
+  call_to_action="a call to action",
+  uses_sex="sexuality",
+  listicle="a listicle"
+)
+
+circular_df_1$label_text = text_labels
+```
+
+```{r}
+bar_chart_1 = circular_df_1 %>%
+  arrange(count) %>%
+  mutate(label_text=factor(label_text, levels=label_text)) %>%
+  ggplot(aes(x=label_text, y=count)) +
+    geom_segment( aes(xend=label_text, yend=0)) +
+    geom_point( size=4, color="orange") +
+    coord_flip()
+
+data2 = bind_cols(map(boolean_cols, count_values, joined_annotations)) %>%
+    mutate_all(~100 * ./dim(joined_annotations)[1]) %>% 
+    pivot_longer(everything(), names_to="video_type", values_to="count")
+
+data2$label_text = sapply(data2$video_type, switch,
+  shows_product="a product",
+  onScreen_text="on-screen text",
+  funny="funny content",
+  features_influencer="an influencer",
+  features_celebrity="a celebrity",
+  suspenseful="suspense",
+  animated="animation",
+  dancing="dancing",
+  tutorial="a tutorial",
+  conversation="a conversation",
+  challenge_adventure="adventure",
+  promotes_brand_event="a brand event",
+  relaxing="a relaxing feeling",
+  features_animal="an animal",
+  emojis="emojis",
+  shows_staff="the brand's employees",
+  graphics_overlay="a graphic overlay",
+  call_to_action="a call to action",
+  uses_sex="sexuality",
+  listicle="a listicle"
+)
+
+data2 = data2%>%
+  arrange(desc(count)) %>%
+  head(10) %>%
+  select(label_text, count) %>%
+  pivot_wider(names_from="label_text", values_from="count")
+
+data2 = rbind(rep(100, 20), rep(0, 20), data2)
+
+radar_chart_1 = radarchart(data2,
+  axistype=1, 
+  pcol=rgb(0.2,0.5,0.5,0.9), 
+  pfcol=rgb(0.2,0.5,0.5,0.5), 
+  plwd=4,
+  cglcol="grey", 
+  cglty=1, 
+  axislabcol="grey", 
+  caxislabels=c("0%", "25%", "50%", "75%", "100%"),
+  cglwd=0.8,
+  vlcex=0.8 
+)
+
+labels = circular_df_1 %>%
+  mutate(angle = 90 - 360 *(id - 0.5) / nrow(circular_df_1)) %>%
+  mutate(hjust = ifelse(angle < -90, 1, 0)) %>%
+  mutate(angle = ifelse(angle < -90, angle+180, angle))
+
+circular_plot_1 = circular_df_1 %>%
+  ggplot(aes(x=as.factor(id), y=count)) +
+    geom_bar(stat="identity", fill=alpha("blue", 0.3)) +
+    ylim(-30,110) +
+    theme_minimal() +
+    theme(
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank(),
+      plot.margin = unit(rep(-1,4), "cm")
+    ) +
+    coord_polar(start = 0) +
+    geom_text(
+      data=labels, 
+      aes(x=id, y=count+5, label=label_text, hjust=hjust), 
+      color="black", 
+      fontface="bold",
+      alpha=0.6, 
+      size=2.5, 
+      inherit.aes = FALSE
+    ) +
+    ggtitle("% of Videos With...")
+
+bar_chart_1
+radar_chart_1
+circular_plot_1
+```
+
+As you'd expect from brands, an overwhelming majority of their posts showcase one or more products. In fact, over **90% of the videos we studied had some form of brand placement**.
+
+So, don't feel shy about advertising your brand and your product in your posts. After all, that's the whole point of social media marketing!
+
+Here's a great example of product placement from Pizza Hut, which earned the brand over 64 million views:
+
+```{r}
+tiktok_embed("https://www.tiktok.com/@pizzahut/video/6907646149507730693")
+```
+
+51% of the videos also had on-screen text, while a little over **30% of the videos tried to be funny**.
+
+Celebrity and influencer endorsements are also relatively popular among TikTok brands with around a quarter of the videos featuring either an endorsement or a collaboration.
+
+Only 3.7% of the videos included a call to action, a significant missed opportunity in our opinion. Asking your followers to follow your channel or reach out to you on other social media channels can do wonders and should always be something you consider when planning your videos.
+
+[TODO: long line of text. Maybe embed a video with a good CTA here?]
+
+Interestingly, sexual content was few and far better. Only 6 of the nearly 650 videos we analyzed employed some form of overt or subtle sexuality, with 5 of these coming from the same account (Victoria's secret).
+
+As they say, though, sex sells. Even though the number of videos employing sexuality was small, the average number of views on these videos were extraordinary, with an average of 13.4 million views per post.
+
+Those numbers made sexual content the second biggest attention grabber among all the types of content we considered.
+
+```{r}
+input_df = annotations %>%
+    inner_join(top_videos, by="link")
+
+count_avg_views_for_bool_cols = function(col_name, df) {
+  df %>%
+    filter_at(col_name, ~. == TRUE) %>%
+    summarise("{col_name}" := mean(views))
+}
+
+avg_views_per_bool_col = bind_cols(
+  map(boolean_cols, count_avg_views_for_bool_cols, input_df)
+) %>%
+  pivot_longer(everything(), names_to="video_type", values_to="avg_views") %>%
+  arrange(desc(avg_views)) %>%
+  mutate(avg_views_mils = avg_views/1e6) %>%
+  mutate(id = row_number())
+
+circular_df_2 = avg_views_per_bool_col %>%
+  head(10)
+
+circular_df_2$label_text = sapply(circular_df_2$video_type, switch,
+  shows_product="a product",
+  onScreen_text="on-screen text",
+  funny="funny content",
+  features_influencer="an influencer",
+  features_celebrity="a celebrity",
+  suspenseful="suspense",
+  animated="animation",
+  dancing="dancing",
+  tutorial="a tutorial",
+  conversation="a conversation",
+  challenge_adventure="adventure",
+  promotes_brand_event="a brand event",
+  relaxing="a relaxing feeling",
+  features_animal="an animal",
+  emojis="emojis",
+  shows_staff="the brand's employees",
+  graphics_overlay="a graphic overlay",
+  call_to_action="a call to action",
+  uses_sex="sexuality",
+  listicle="a listicle"
+)
+```
+
+```{r}
+bar_chart_2 = circular_df_2 %>%
+  ggplot(aes(x=label_text, y=avg_views_mils)) +
+    geom_col() +
+    coord_flip()
+  
+labels = circular_df_2 %>%
+  mutate(angle = 90 - 360 *(id - 0.5) / nrow(circular_df_2)) %>%
+  mutate(hjust = ifelse(angle < -90, 1, 0)) %>%
+  mutate(angle = ifelse(angle < -90, angle+180, angle))
+
+circular_plot_2 = circular_df_2 %>%
+  ggplot(aes(x=as.factor(id), y=avg_views_mils)) +
+    geom_bar(stat="identity", fill=alpha("blue", 0.3)) +
+    ylim(-10,25) +
+    theme_minimal() +
+    theme(
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank(),
+      plot.margin = unit(rep(-1,4), "cm")
+    ) +
+    coord_polar(start = 0) +
+    geom_text(
+      data=labels, 
+      aes(x=id, y=avg_views_mils+2, label=label_text, hjust=hjust), 
+      color="black", 
+      fontface="bold",
+      alpha=0.6, 
+      size=2.5, 
+      inherit.aes = FALSE
+    ) +
+    ggtitle("Average number of views (millions) for posts with ...")
+
+bar_chart_2
+circular_plot_2
+```
+
+The posts which drew the largest numbers of eyeballs, though, were those which featured promotions for a brand event.
+
+As with product placement, don't shy away from publicizing your upcoming brand events on TikTok. Not only are many of the most successful TikTok brands doing just that but it seems like fans also love watching these posts.
+
+Here's a great example of an event promotion post from TikTok's own account. It's got great music, a collab with an influencer, and even includes a helpful tutorial that people can follow if they want to participate.
+
+```{r}
+tiktok_embed("https://www.tiktok.com/@tiktok/video/6906565862132698370")
+```
+
+And it's for a good cause; no wonder it generated 129 million views!
+
+Videos that include animals (or animal mascots) also do rather well on TikTok. For example, one of the top 10 most viewed videos among the 650 we studied is this joyful little bit with the Indianapolis Colts' mascot, Blue, giving folks a taste of some pie:
+
+```{r}
+tiktok_embed("https://www.tiktok.com/@blue/video/6797517710206029061")
+```
+
+The San Diego Zoo, too, has an extremely popular channel, often generating millions of views per post. Here's one of a kea putting my intelligence to shame:
+
+```{r}
+tiktok_embed("https://www.tiktok.com/@sandiegozoo/video/6819753891236728069")
+```
+
+Videos with graphic overlays, animations, and tutorials also do quite well on the platform.
+
+And if you're a brand, don't shy away from turning the lens on your employees (with their consent, of course).
+
+Among the posts we studied, videos that showed a company's staff had, on average, over 9 million views.
+
+These videos also put a human face to your firm, which is always priceless.
+
+This video from Starbucks, which earned 11.6 million views, is a great exhibit of the company's employees and their devotion to giving their customers the best service, no matter what:
+
+```{r}
+tiktok_embed("https://www.tiktok.com/@starbucks/video/6899106767947533574 ")
+```
+
+## Conclusion
+
+[TODO]
+
+## Key Takeaways
+
+-   **50% of the top brands we studied had no TikTok presence**, including billion-dollar brands like Google, Facebook, YouTube, and IKEA.
+-   The best-performing TikTok brands **post `r round(avg_posts_summary$mean_weekly_posts, 2)` times per week** on average.
+-   A **1% increase in followers corresponds to a `r fans_avg_views_slope`% increase in average views per post**.
+-   **80% of the top videos had music**, with upbeat songs being the most popular music choice by far.
