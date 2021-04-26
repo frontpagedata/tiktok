@@ -50,7 +50,7 @@ h3 {
 rm(list=ls())
 ## packages: remove or add your necessary packages
 
-required_packages <- c("tidyverse", "readxl", "ggthemes", "hrbrthemes", "extrafont", "plotly", "scales", "stringr", "gganimate", "here", "tidytext", "sentimentr", "scales", "DT", "here", "sm", "mblm", "glue", "fs", "knitr", "rmdformats", "janitor", "urltools", "colorspace", "pdftools", "showtext", "stringi", "fmsb")
+required_packages <- c("tidyverse", "readxl", "ggthemes", "hrbrthemes", "extrafont", "plotly", "scales", "stringr", "gganimate", "here", "tidytext", "sentimentr", "scales", "DT", "here", "sm", "mblm", "glue", "fs", "knitr", "rmdformats", "janitor", "urltools", "colorspace", "pdftools", "showtext", "stringi", "fmsb", "lemon")
 
 for(i in required_packages) { 
 if(!require(i, character.only = T)) {
@@ -271,7 +271,7 @@ annotations = annotations %>%
 
 # TikTok Guide for Businesses (2021)
 
-[TODO: Other title suggestions]
+**[TODO: Other title suggestions]**
 
 With over 2 billion downloads and over 1 billion monthly active users, TikTok has marked itself as one of the biggest social media platform in just a couple of years.
 
@@ -287,6 +287,10 @@ Specifically, we looked at
 -   what the style, tone, and design of the best performing TikTok videos were.
 
 Without further ado, let's dive into what we found.
+
+[**TODO:** Move Key Takeaways from the bottom to here. It's there now because it depends on the code and putting it here would cause errors.]
+
+[**TODO:** Add methodology section here or at the bottom. Do you have a preference?]
 
 ## Half of the Top Brands Don't Have a TikTok Presence Yet
 
@@ -325,7 +329,13 @@ data %>%
     labs(title="50% of the major brands have no TikTok presence", x=NULL, y="% of brands")
 ```
 
-## The best brands post around 3 times per week 
+## The best brands post around 3 times per week
+
+As with YouTube, TikTok's algorithm rewards frequent and consistent posts. We found that, on average, the best-performing TikTok brands (those with 1 million or more average views per post) released a **new video 3.16 times per week**.
+
+[**TODO for Laura:** Add a pill box with the 3.16 times number likes [this image](https://mk0apibacklinkov1r5n.kinstacdn.com/app/uploads/2020/08/the-average-time-to-first-click-is-about-15-seconds-960x346.png)]
+
+While doing more than 5 posts per week is likely not going to make much of a difference, there are exceptions.
 
 ```{r, include=FALSE}
 # brands_with_posts %>%
@@ -358,18 +368,19 @@ brands_with_posts %>%
   filter(!is.na(avg_posts_per_week)) %>%
   filter(total_posts >= 5) %>%
   filter(avg_views >= thresh) %>%
-  ggplot(aes(x=avg_posts_per_week)) +
-    geom_histogram(binwidth=1) +
-    labs(x="Avg. posts per week", y="Number of brands")
+  mutate(avg_posts_per_week = as.integer(avg_posts_per_week)) %>%
+  group_by(avg_posts_per_week) %>%
+  count() %>%
+  ggplot(aes(x=avg_posts_per_week, y=n)) +
+    geom_col() +
+    labs(x="Avg. posts per week", y="Number of brands", title="Most brands post less than 5 times per week")
 ```
-
-As with YouTube, TikTok's algorithm rewards frequent and consistent posts. We found that, on average, the best-performing TikTok brands (those with 1 million or more average views per post) released a **new video 3.16 times per week**.
-
-While doing more than 5 posts per week is likely not going to make much of a difference, there are exceptions.
 
 Over to the very right of the graph is Amazon Prime Video, which not only posts more than 40 times per week but also draws an average of 1.32 million views per post.
 
 These are mostly snippets and previews of its current and upcoming shows, however, and it's unlikely that most business will have as much content as the streaming platform.
+
+[**TODO: change title of plot**]
 
 ```{r}
 brands_with_posts %>%
@@ -378,33 +389,34 @@ brands_with_posts %>%
   ggplot(aes(x=brand_name, y=total_views)) +
     geom_col() +
     labs(title="Consistency makes a big difference", x=NULL, y="Total views (millions)")
+
+# brands_with_posts %>%
+#   filter(brand_name %in% c("Netflix", "Amazon Prime Video")) %>%
+#   # mutate(total_views = total_views/1e6) %>%
+#   select(brand_name, total_posts, total_views, total_likes, total_comments, total_shares, avg_views, avg_engagement) %>%
+#   pivot_longer(!brand_name, names_to="metric", values_to="value") %>%
+#   # mutate(value = value/1e6) %>%
+#   ggplot(aes(
+#     x=ifelse(brand_name == "Netflix", -value, value),
+#     y = metric, fill = brand_name)
+#   ) +
+#     geom_col() +
+#     scale_x_symmetric(labels = abs) +
+#     scale_x_log10() +
+#     labs(x = "Population")
 ```
 
 Interestingly, the only other brand that could take Amazon Prime on, Netflix, posts far less often (8.5 times per week) and the difference shows. While Netflix's TikTok account has accumulated a total of 419M views, Amazon Prime sits at a pretty 2.2 trillion views, largely because of its more consistent rate of posting.
 
 **Key Takeaway:** post at least three times a week and make sure to be more frequent and consistent than your competitors.
 
-## Engagement is Correlated with Views
-
-```{r}
-brands_with_posts %>%
-  ggplot(aes(x=avg_views, y=avg_engagement)) +
-    geom_point() +
-    geom_smooth(method="lm") +
-    scale_x_log10() +
-    scale_y_log10() +
-    labs(x="Avg. views per post", y="Avg. engagement per post")
-```
-
-It shouldn't come as a surprise that engagements are highly correlated with views. The larger your audience, the more likely you are to get shares, likes, and comments for your videos.
-
-In short, going viral is easier with a larger following and building a large and dedicated fan base should be one of the top priorities for your channel.
-
 ## How many views is a single follower worth?
 
-The number of followers a brand has is highly correlated with the number of views their posts got on average.
+The number of followers a brand has is, of course, highly correlated with the average views and engagement their posts generate.
 
-You obviously want to build as large of a following as possible, but this begs the question: just how important is gaining one additional follower?
+The larger your audience, the more likely you are to get shares, likes, and comments for your videos. In short, going viral is easier with a larger following, and building a large and dedicated fan base should be one of the top priorities for your channel.
+
+This begs the question, though: just how important is gaining one additional follower?
 
 ```{r}
 reg = lm(log10(avg_views) ~ log10(fans), data=brands_with_posts)
@@ -427,14 +439,14 @@ Say you currently have 100 followers and you paid \$200 to get an additional 20 
 
 ## Tech, Food, and Gaming brands perform the best on TikTok
 
-[TODO: Add text for this section]
+[**TODO: Add text for this section**]
 
 ```{r}
-brands_with_posts %>%
-  ggplot(aes(x=fans, y=avg_views, color=category)) +
-    geom_point() +
-    scale_x_log10() +
-    scale_y_log10()
+# brands_with_posts %>%
+#   ggplot(aes(x=fans, y=avg_views, color=category)) +
+#     geom_point() +
+#     scale_x_log10() +
+#     scale_y_log10()
 
 brands_with_posts %>%
   group_by(category) %>%
@@ -446,14 +458,20 @@ brands_with_posts %>%
     geom_segment( aes(xend=category, yend=0)) +
     geom_point( size=4, color="orange") +
     coord_flip() +
-    labs(title="How popular are different types of brands?", x=NULL, y="Avg. views per video")
+    labs(title="How popular are different types of brands?", x=NULL, y="Avg. views per video") +
+    scale_y_continuous(
+      labels=c("0", "500K", "1M", "1.5M", "2M"),
+      breaks=c(0, 5e5, 1e6, 1.5e6, 2e6)
+    )
 ```
 
 ## Music Makes the Video
 
 TikTok videos thrive on music. Of the nearly 650 videos we studied, nearly 80% of the posts had music.
 
-```{r}
+[**TODO for Laura:** Create a graphic like [this one](https://mk0apibacklinkov1r5n.kinstacdn.com/app/uploads/2020/08/42-percent-of-local-searchers-click-on-the-google-map-pack-960x430.png)]
+
+```{r music}
 annotations %>%
   mutate(has_music = ifelse(music_type == "No music", "No music", "Has Music")) %>%
   group_by(has_music) %>%
@@ -478,16 +496,24 @@ annotations %>%
 
 Additionally, it seems that upbeat music is by far the most popular choice, which isn't all that surprising when you consider that TikTok owes a large part of its popularity to dance videos.
 
+[**TODO:** Choose chart title from two options]
+
 ```{r}
 annotations %>%
   group_by(music_type) %>%
   count() %>%
+  ungroup() %>%
+  mutate(n = 100*n/sum(n)) %>%
   ggplot(aes(x=music_type, y=n)) +
     geom_col() +
     labs(
-      title="How popular are different types of music?",
+      title="Upbeat music is by far the most popular\n OR \n How popular are different types of music",
       x=NULL,
-      y="Number of videos"
+      y=NULL
+    ) +
+    scale_y_continuous(
+      labels=c("0%", "20%", "40%", "60%"),
+      breaks=c(0, 20, 40, 60)
     )
 ```
 
@@ -506,8 +532,6 @@ music_df = annotations %>%
 
 upbeat_over_has_music = music_df %>% filter(music_type == "Upbeat") %>% select(n) / music_df %>% filter(music_type == "Has Music") %>% select(n)
 ```
-
-<s>As the folks from Aldrich Landscape will tell you, some Tai Verdes can do wonders for your post. At the time of writing, this video from the landscaping firm had gotten 20.9M views and 3.1M likes! Quite a feat for a simple lawn care video!</s>
 
 Add some music and even something as mundane as you cutting grass can attract 20.9M views. In fact, the folks at Adrlich Landscape have made a whole channel around this --- and they're doing extremely well on the platform. Just goes to show that you don't need to be a multi-billion dollar business to succeed on social media; a little bit of creativity goes a long way.
 
@@ -531,51 +555,13 @@ annotations %>%
   arrange(desc(n))
 ```
 
-## Description Text Doesn't Influence Views
-
--   Since there's no relation, should we shouldn't include it in the final draft?
--   Maybe just show a histogram?
-
-```{r}
-annotations %>%
-  mutate(text_length = stri_length(video_text)) %>%
-  inner_join(top_videos, by="link") %>%
-  ggplot(aes(x=text_length, y=views)) +
-    geom_point() +
-    geom_smooth(method="lm") +
-    scale_y_log10() +
-    labs(x="Length of description", y="Views")
-```
-
-```{r}
-annotations %>%
-  mutate(text_length = stri_length(video_text)) %>%
-  inner_join(top_videos, by="link") %>%
-  ggplot(aes(x=text_length)) +
-    geom_histogram() +
-    labs(x="Length of description", y="Number of videos")
-```
-
-## Hashtags
-
--   Relevant? Should we keep it?
-
-```{r}
-annotations %>%
-  mutate(num_hashtags = str_count(video_text, "#")) %>%
-  inner_join(top_videos, by="link") %>%
-  ggplot(aes(x=num_hashtags, y=views)) +
-    geom_point() +
-    geom_smooth(method="lm") +
-    scale_y_log10() +
-    labs(x="Number of hashtags in description", y="Views")
-```
-
 ## Is there a Recipe For the Perfect TikTok Post?
 
 All this begs the question: is there a recipe for crafting a TikTok post that's just right?
 
 While there obviously isn't a perfect formula for creating a viral video --- if there was, everyone would be using it! --- we did study the tone, style, and content of the top 5 videos from each brand to get a identify the common traits shared by the most successful TikTok videos.
+
+[**TODO for Abhilash:** which of the two chart types do you prefer? Simply bar plot or the circular barplot?]
 
 ```{r}
 count_values = function(col_name, df) {
@@ -623,61 +609,71 @@ circular_df_1$label_text = text_labels
 ```
 
 ```{r}
+# data2 = bind_cols(map(boolean_cols, count_values, joined_annotations)) %>%
+#     mutate_all(~100 * ./dim(joined_annotations)[1]) %>% 
+#     pivot_longer(everything(), names_to="video_type", values_to="count")
+
+# data2$label_text = sapply(data2$video_type, switch,
+#   shows_product="a product",
+#   onScreen_text="on-screen text",
+#   funny="funny content",
+#   features_influencer="an influencer",
+#   features_celebrity="a celebrity",
+#   suspenseful="suspense",
+#   animated="animation",
+#   dancing="dancing",
+#   tutorial="a tutorial",
+#   conversation="a conversation",
+#   challenge_adventure="adventure",
+#   promotes_brand_event="a brand event",
+#   relaxing="a relaxing feeling",
+#   features_animal="an animal",
+#   emojis="emojis",
+#   shows_staff="the brand's employees",
+#   graphics_overlay="a graphic overlay",
+#   call_to_action="a call to action",
+#   uses_sex="sexuality",
+#   listicle="a listicle"
+# )
+
+# data2 = data2%>%
+#   arrange(desc(count)) %>%
+#   head(10) %>%
+#   select(label_text, count) %>%
+#   pivot_wider(names_from="label_text", values_from="count")
+# 
+# data2 = rbind(rep(100, 20), rep(0, 20), data2)
+# 
+# radar_chart_1 = radarchart(data2,
+#   axistype=1, 
+#   pcol=rgb(0.2,0.5,0.5,0.9), 
+#   pfcol=rgb(0.2,0.5,0.5,0.5), 
+#   plwd=4,
+#   cglcol="grey", 
+#   cglty=1, 
+#   axislabcol="grey", 
+#   caxislabels=c("0%", "25%", "50%", "75%", "100%"),
+#   cglwd=0.8,
+#   vlcex=0.8 
+# )
+
 bar_chart_1 = circular_df_1 %>%
   arrange(count) %>%
   mutate(label_text=factor(label_text, levels=label_text)) %>%
   ggplot(aes(x=label_text, y=count)) +
     geom_segment( aes(xend=label_text, yend=0)) +
     geom_point( size=4, color="orange") +
-    coord_flip()
-
-data2 = bind_cols(map(boolean_cols, count_values, joined_annotations)) %>%
-    mutate_all(~100 * ./dim(joined_annotations)[1]) %>% 
-    pivot_longer(everything(), names_to="video_type", values_to="count")
-
-data2$label_text = sapply(data2$video_type, switch,
-  shows_product="a product",
-  onScreen_text="on-screen text",
-  funny="funny content",
-  features_influencer="an influencer",
-  features_celebrity="a celebrity",
-  suspenseful="suspense",
-  animated="animation",
-  dancing="dancing",
-  tutorial="a tutorial",
-  conversation="a conversation",
-  challenge_adventure="adventure",
-  promotes_brand_event="a brand event",
-  relaxing="a relaxing feeling",
-  features_animal="an animal",
-  emojis="emojis",
-  shows_staff="the brand's employees",
-  graphics_overlay="a graphic overlay",
-  call_to_action="a call to action",
-  uses_sex="sexuality",
-  listicle="a listicle"
-)
-
-data2 = data2%>%
-  arrange(desc(count)) %>%
-  head(10) %>%
-  select(label_text, count) %>%
-  pivot_wider(names_from="label_text", values_from="count")
-
-data2 = rbind(rep(100, 20), rep(0, 20), data2)
-
-radar_chart_1 = radarchart(data2,
-  axistype=1, 
-  pcol=rgb(0.2,0.5,0.5,0.9), 
-  pfcol=rgb(0.2,0.5,0.5,0.5), 
-  plwd=4,
-  cglcol="grey", 
-  cglty=1, 
-  axislabcol="grey", 
-  caxislabels=c("0%", "25%", "50%", "75%", "100%"),
-  cglwd=0.8,
-  vlcex=0.8 
-)
+    coord_flip() +
+    scale_y_continuous(
+      labels=c("0%", "25%", "50%", "75%", "100%"),
+      breaks=c(0, 25, 50, 75, 120),
+      expand=c(0, 5)
+    ) +
+    labs(
+      title="Over 90% of the videos had product placement",
+      y=NULL,
+      x="videos with..."
+    )
 
 labels = circular_df_1 %>%
   mutate(angle = 90 - 360 *(id - 0.5) / nrow(circular_df_1)) %>%
@@ -708,7 +704,7 @@ circular_plot_1 = circular_df_1 %>%
     ggtitle("% of Videos With...")
 
 bar_chart_1
-radar_chart_1
+# radar_chart_1
 circular_plot_1
 ```
 
@@ -728,13 +724,15 @@ Celebrity and influencer endorsements are also relatively popular among TikTok b
 
 Only 3.7% of the videos included a call to action, a significant missed opportunity in our opinion. Asking your followers to follow your channel or reach out to you on other social media channels can do wonders and should always be something you consider when planning your videos.
 
-[TODO: long line of text. Maybe embed a video with a good CTA here?]
+[**TODO:** long line of text. Maybe embed a video with a good CTA here?]
 
 Interestingly, sexual content was few and far better. Only 6 of the nearly 650 videos we analyzed employed some form of overt or subtle sexuality, with 5 of these coming from the same account (Victoria's secret).
 
 As they say, though, sex sells. Even though the number of videos employing sexuality was small, the average number of views on these videos were extraordinary, with an average of 13.4 million views per post.
 
-Those numbers made sexual content the second biggest attention grabber among all the types of content we considered.
+Those numbers make sexuality the second biggest attention grabber among all the types of content we considered.
+
+[**TODO for Abhilash:** which plot do you prefer?]
 
 ```{r}
 input_df = annotations %>%
@@ -755,7 +753,7 @@ avg_views_per_bool_col = bind_cols(
   mutate(id = row_number())
 
 circular_df_2 = avg_views_per_bool_col %>%
-  head(10)
+  head(20)
 
 circular_df_2$label_text = sapply(circular_df_2$video_type, switch,
   shows_product="a product",
@@ -783,9 +781,17 @@ circular_df_2$label_text = sapply(circular_df_2$video_type, switch,
 
 ```{r}
 bar_chart_2 = circular_df_2 %>%
+  arrange(avg_views_mils) %>%
+  mutate(label_text=factor(label_text, levels=label_text)) %>%
   ggplot(aes(x=label_text, y=avg_views_mils)) +
-    geom_col() +
-    coord_flip()
+    geom_segment(aes(xend=label_text, yend=0)) +
+    geom_point(size=4, color="orange") +
+    coord_flip() +
+    labs(
+      title="Brand events generate the most views",
+      y="Avg. views (millions)",
+      x="videos with..."
+    )
   
 labels = circular_df_2 %>%
   mutate(angle = 90 - 360 *(id - 0.5) / nrow(circular_df_2)) %>%
@@ -857,9 +863,13 @@ This video from Starbucks, which earned 11.6 million views, is a great exhibit o
 tiktok_embed("https://www.tiktok.com/@starbucks/video/6899106767947533574 ")
 ```
 
+## Methodology
+
+[**TODO**]
+
 ## Conclusion
 
-[TODO]
+[**TODO**]
 
 ## Key Takeaways
 

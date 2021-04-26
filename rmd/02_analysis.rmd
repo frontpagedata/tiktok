@@ -906,6 +906,8 @@ tiktok_embed("https://www.tiktok.com/@starbucks/video/6899106767947533574 ")
 
 ## [TODOS, Ideas & Questions]
 
+- Maybe add a "interesting tidbits" section at the end with stats about things like hashtags, text description and so on?
+
 ### Brands
 
 -   <s>Show Aldrich Landscape as an example of a brand with 000s of followers, but does not require any special stuff for their videos. Nature sells?</s>
