@@ -65,7 +65,7 @@ library(tiktokrmd)
 ```
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.showtext = TRUE, dpi = 700, include=FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.showtext = TRUE, dpi = 700)
 
 knitr::knit_hooks$set(inline = function(x) {
   prettyNum(x, big.mark = ",", small.mark = ",", scientific = F)
@@ -207,13 +207,13 @@ colfunc <- colorRampPalette(c(bl_col, "#bce2d5"))
 pos_cols <- colfunc(10)
 ```
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE,include=FALSE}
 brands = read_csv("../raw_data/brands_list.csv", col_types="cciccddddddd")
 top_videos = read_csv("../raw_data/top_videos.csv", col_types="cicddddcc")
 annotations = read_csv("../raw_data/video_annotations.csv", col_types="")
 ```
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE,include=FALSE}
 # Aggregate similar categories into one
 brands = brands %>%
   mutate(
@@ -225,7 +225,7 @@ brands = brands %>%
   filter(brand_name != "Queen City Alchemy")
 ```
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE,include=FALSE}
 # Filter out brands with no account, fans, or posts
 # And compute some aggregations/averages
 brands_with_posts = brands %>%
@@ -237,7 +237,7 @@ brands_with_posts = brands %>%
   mutate(avg_engagement = total_engagement/total_posts) # Avg. engagement per post
 ```
 
-```{r}
+```{r,include=FALSE}
 ## Changing variable in thousands to have actual values
 top_videos = top_videos %>% 
     mutate_at(vars(contains('_000s')), ~ .*1000)
@@ -251,7 +251,7 @@ top_videos = top_videos %>%
   rename_with(change_colnames)
 ```
 
-```{r}
+```{r,include=FALSE}
 boolean_cols = colnames(annotations)[-1:-6]
 
 annotations = annotations %>% 
@@ -259,7 +259,7 @@ annotations = annotations %>%
   mutate_at(boolean_cols, ~ifelse(is.na(.), FALSE, TRUE))
 ```
 
-```{r}
+```{r,include=FALSE}
 ## Fixing data quality issue
 annotations = annotations %>%
   mutate(uses_sex = ifelse(
@@ -269,9 +269,11 @@ annotations = annotations %>%
   ))
 ```
 
-# TikTok Guide for Businesses (2021)
+# We analyzed over 650 TikTok videos and 300 brands. This is what we found.
 
-**[TODO: Other title suggestions]**
+**Other possible titles:**
+
+-   TikTok Guide for Businesses (2021)
 
 With over 2 billion downloads and over 1 billion monthly active users, TikTok has marked itself as one of the biggest social media platforms in just a couple of years.
 
@@ -290,15 +292,13 @@ Without further ado, let's dive into what we found.
 
 [**TODO:** Move Key Takeaways from the bottom to here. It's there now because it depends on the code and putting it here would cause errors.]
 
-[**TODO:** Add methodology section here or at the bottom. Do you have a preference?]
-
 ## Half of the Top Brands Don't Have a TikTok Presence Yet
 
 Of the 317 brands we studied, nearly **50% either didn't have a TikTok account or had zero posts** on their account. This included billion-dollar brands like Google, Facebook, YouTube, IKEA, Nestlé, Audi, Toyota, and more.
 
 ![](../plots/tiktok_presence_bar_chart.jpg)
 
-```{r}
+```{r,include=FALSE}
 counts = as.integer(c(
 brands %>% 
   count(),
@@ -370,7 +370,7 @@ avg_posts_summary = brands_with_posts %>%
 avg_posts_summary
 ```
 
-```{r}
+```{r,include=FALSE}
 brands_with_posts %>%
   filter(brand_name != "Queen City Alchemy") %>%
   filter(!is.na(avg_posts_per_week)) %>%
@@ -388,11 +388,11 @@ Over to the very right of the graph is Amazon Prime Video, which not only posts 
 
 These are mostly snippets and previews of its current and upcoming shows, however, and it's unlikely that most business will have as much content as the streaming platform.
 
+Interestingly, the only other brand that could take Amazon Prime on, Netflix, posts far less often (8.5 times per week) and the difference shows. While Netflix's TikTok account has accumulated a total of 419M views, Amazon Prime sits at a pretty 2.2 billion views, mainly because of its more consistent rate of posting.
+
 ![](../plots/pill_box_amazon_netflix.jpg)
 
-[**TODO: change title of plot**]
-
-```{r}
+```{r,include=FALSE}
 brands_with_posts %>%
   filter(brand_name %in% c("Netflix", "Amazon Prime Video")) %>%
   mutate(total_views = total_views/1e6) %>%
@@ -420,8 +420,6 @@ brands_with_posts %>%
 #     labs(x = "Population")
 ```
 
-Interestingly, the only other brand that could take Amazon Prime on, Netflix, posts far less often (8.5 times per week) and the difference shows. While Netflix's TikTok account has accumulated a total of 419M views, Amazon Prime sits at a pretty 2.2 billion views, mainly because of its more consistent rate of posting.
-
 **Key takeaway:** Post at least three times a week and make sure to be more frequent and consistent than your competitors.
 
 ## How many views is a single follower worth?
@@ -438,9 +436,7 @@ Say you could run a similar giveaway which cost you \$X to get one more follower
 
 ![](../plots/followers_views_regression.jpg)
 
-**[TODO: chart title]**
-
-```{r}
+```{r,include=FALSE}
 reg = lm(log10(avg_views) ~ log10(fans), data=brands_with_posts)
 fans_avg_views_slope = round(coefficients(reg)[2], 2)
 
@@ -477,7 +473,7 @@ So, we computed the average number of views each brand got on their videos and t
 
 ![](../plots/industry_views_bar_chart.jpg)
 
-```{r}
+```{r,include=FALSE}
 # brands_with_posts %>%
 #   ggplot(aes(x=fans, y=avg_views, color=category)) +
 #     geom_point() +
@@ -512,7 +508,7 @@ That's not to say that you need to be a billion-dollar tech company to succeed o
 
 ![](../plots/top_10_brands_bar_chart.jpg)
 
-```{r}
+```{r,include=FALSE}
 brands_with_posts %>% 
   filter(total_posts > 5) %>%
   group_by(brand_name) %>% 
@@ -571,11 +567,11 @@ tiktok_embed("https://www.tiktok.com/@who/video/6832233774097517830")
 
 ## Music Makes the Video
 
-TikTok videos thrive on music. Of the nearly 650 videos we studied, almost 80% of the posts had music.
+TikTok videos thrive on music. Of the nearly 650 videos we studied, almost **80% of the posts had music**.
 
 ![](../plots/music_pie_chart.jpg)
 
-```{r music}
+```{r music,include=FALSE}
 annotations %>%
   mutate(has_music = ifelse(music_type == "No music", "No music", "Has Music")) %>%
   group_by(has_music) %>%
@@ -598,13 +594,11 @@ annotations %>%
     theme(legend.position = "none")
 ```
 
-Additionally, it seems that upbeat music is the most popular choice by far, which isn't all that surprising when you consider that TikTok owes a large part of its popularity to dance videos.
-
-[**TODO:** Choose chart title from two options]
+Additionally, upbeat music was the most popular choice by far, which isn't all that surprising when you consider that TikTok owes a large part of its popularity to dance videos. **62% of the videos used upbeat music**, while suspenseful or relaxing music each were used by less than 10% of the videos.
 
 ![](../plots/music_types_bar_chart.jpg)
 
-```{r}
+```{r,include=FALSE}
 annotations %>%
   group_by(music_type) %>%
   count() %>%
@@ -623,7 +617,7 @@ annotations %>%
     )
 ```
 
-```{r}
+```{r,include=FALSE}
 music_df = annotations %>%
   group_by(music_type) %>%
   count() %>%
@@ -654,7 +648,7 @@ top_videos %>%
 tiktok_embed("https://www.tiktok.com/@aldrichlandscape/video/6868589417318075653")
 ```
 
-In fact, the folks at [Adrlich Landscape](https://www.tiktok.com/@aldrichlandscape/) have made a whole channel around this --- and they're doing exceptionally well on the platform. Just goes to show that you don't need to be a multi-billion dollar business to succeed on social media; a little bit of creativity goes a long way.
+In fact, the folks at [Aldrich Landscape](https://www.tiktok.com/@aldrichlandscape/) have made a whole channel around this --- and they're doing exceptionally well on the platform. Just goes to show that you don't need to be a multi-billion dollar business to succeed on social media; a little bit of creativity goes a long way.
 
 ```{r, include=FALSE, echo=FALSE}
 ## Looks like no one song was particularly popular across all videos
@@ -675,7 +669,7 @@ While there obviously isn't a perfect formula for creating a viral video --- if 
 
 First, let's examine the types of content that are the most popular among brand videos --- and how many views they attract in general.
 
-```{r}
+```{r,include=FALSE}
 mood = c("funny", "relaxing", "suspenseful", "challenge_adventure")
 
 content = c("shows_product", "call_to_action", "tutorial", "promotes_brand_event", "listicle", "shows_staff", "features_influencer", "features_celebrity", "features_animal", "uses_sex", "dancing", "conversation")
@@ -683,7 +677,7 @@ content = c("shows_product", "call_to_action", "tutorial", "promotes_brand_event
 style = c("onScreen_text", "emojis", "graphics_overlay", "animated")
 ```
 
-```{r}
+```{r,include=FALSE}
 count_values = function(col_name, df) {
   df %>%
     filter_at(c(col_name), ~.==TRUE) %>%
@@ -769,7 +763,7 @@ As you'd expect from brands, an overwhelming majority of their posts showcase on
 
 ![](../plots/content_counts_bar_chart.jpg)
 
-```{r}
+```{r,include=FALSE}
 # data2 = bind_cols(map(boolean_cols, count_values, joined_annotations)) %>%
 #     mutate_all(~100 * ./dim(joined_annotations)[1]) %>% 
 #     pivot_longer(everything(), names_to="video_type", values_to="count")
@@ -913,7 +907,7 @@ The posts that drew the largest numbers of eyeballs, though, were those which fe
 
 ![](../plots/content_views_bar_chart.jpg)
 
-```{r}
+```{r,include=FALSE}
 # labels = circular_df_2 %>%
 #   mutate(angle = 90 - 360 *(id - 0.5) / nrow(circular_df_2)) %>%
 #   mutate(hjust = ifelse(angle < -90, 1, 0)) %>%
@@ -1015,7 +1009,7 @@ Dance videos, tutorials, and celebrity/influencer collaborations and endorsement
 
 ### Which feelings do brands try to evoke with their videos?
 
-Marketing is an inherently emotional endeavour. You want your audience to associate positive emotions with your brand and also encourage them to do something: buy a product, participate in an event, or follow you on social media.
+Marketing is an inherently emotional endeavor. You want your audience to associate positive emotions with your brand and also encourage them to do something: buy a product, participate in an event, or follow you on social media.
 
 This is also why music is so important and why almost all of the videos we studied included music: it helps you set the mood.
 
@@ -1025,7 +1019,7 @@ That's obviously somewhat dependent on your product and your brand identity. If 
 
 ![](../plots/mood_counts_bar_chart.jpg)
 
-```{r}
+```{r,include=FALSE}
 mood_bar_chart_1 = circular_df_1 %>%
   filter(video_type %in% mood) %>%
   arrange(count) %>%
@@ -1048,11 +1042,11 @@ mood_bar_chart_1 = circular_df_1 %>%
 mood_bar_chart_1
 ```
 
-With that said, laughter is the best medicine and the data we have shows precisely that. **30% of the videos we studied employed humour** in some form or the other.
+With that said, laughter is the best medicine and the data we have shows precisely that. **30% of the videos we studied employed humor** in some form or the other.
 
 ![](../plots/mood_views_bar_chart.jpg)
 
-```{r}
+```{r,include=FALSE}
 mood_bar_chart_2 = circular_df_2 %>%
   filter(video_type %in% mood) %>%
   arrange(avg_views_mils) %>%
@@ -1074,17 +1068,17 @@ mood_bar_chart_2 = circular_df_2 %>%
 mood_bar_chart_2
 ```
 
-Funny videos rule TikTok, and they also generate the most views. They're also applicable to almost all brands and a great fallback for when you can't quite decide what to do with your next video --- unless you own a funeral parlour, in which case please don't try to be funny.
+Funny videos rule TikTok, and they also generate the most views. They're also applicable to almost all brands and a great fallback for when you can't quite decide what to do with your next video --- unless you own a funeral parlor, in which case please don't try to be funny.
 
 **Key takeaway:** The mood of your videos will depend on the brand image you're trying to curate, but it's (almost) never a bad idea to crack a joke or two.
 
-### Which videos styles are the most successful?
+### Which video styles are the most successful?
 
 Another important element to consider when planning your posts is which styles to use. TikTok, of course, offers a wide variety of filters, graphic overlays, and many other kinds of special effects for you to spruce up your video.
 
 Far too many for us to study, in fact, but we did look at some of the more basic types of styles being used by TikTok creators and how well they do in practice. ![](../plots/styles_counts_bar_chart.jpg)
 
-```{r}
+```{r,include=FALSE}
 stye_bar_chart_1 = circular_df_1 %>%
   filter(video_type %in% style) %>%
   arrange(count) %>%
@@ -1115,7 +1109,7 @@ Graphic overlays were the **least popular style**, with only 3.9% of the videos 
 
 ![](../plots/styles_views_bar_chart.jpg)
 
-```{r}
+```{r,include=FALSE}
 stye_bar_chart_2 = circular_df_2 %>%
   filter(video_type %in% style) %>%
   arrange(avg_views_mils) %>%
@@ -1185,7 +1179,7 @@ Here are a few other interesting stats we found:
 
 -   **Video descriptions were 87 characters** long on average (TikTok imposes a 150-character limit).
 
--   Videos descriptions had **3.26 hashtags on average**.
+-   Video descriptions had **3.26 hashtags on average**.
 
 -   87.3% of the videos had at least one hashtag.
 
@@ -1193,11 +1187,13 @@ Here are a few other interesting stats we found:
 
 ## Conclusion
 
-[**TODO:** Add a link to methodology. Since we didn't create a separate data report for this study, that's something that requires some thought. Need to consult with Daniel on this.]
+TikTok has become one of the biggest social media platforms in a relatively very short span on time. Its meteoric rise and its focus on shorter, spiffier videos has left some brands without a coherent strategy for including it in their social media efforts.
 
-If you've found this guide useful, we'd love it if you could share it with your friends and colleagues who are looking to leverage TikTok for their brands.
+Through this study, we examined the behavior of the top TikTok brands and the style and content of their best-performing videos. And the one takeaway we'd like to leave you with is that creativity and consistency are the two most important metrics for TikTok success.
 
-For those that want to learn more about how we conducted this research, here's a link to our methods and the raw data used for this analysis.
+We hope that this study was useful in informing your TikTok strategy. If it was, we'd love it if you could share it with your friends and colleagues who are also looking to leverage TikTok for their brands.
+
+For those that want to learn more about how we conducted this research, here's a [link to the GitHub repo](https://github.com/frontpagedata/tiktok) with our methodology and the raw data used for this analysis.
 
 What was your \#1 takeaway from this guide? Let us in the comments below!
 
@@ -1210,11 +1206,7 @@ What was your \#1 takeaway from this guide? Let us in the comments below!
 -   Tech, Food, and Gaming brands have the **highest average views per video**.
 -   Among the brands we studied, **So Satisfying, Samsung, TikTok, Chevrolet, and Flighthouse were the 5 most popular brands** in terms of average views per video.
 -   **5 of the top 10 videos** were created by TikTok itself.
--   **90% of the videos** we studied had product placement, while **30% of the videos employed humour**.
+-   **90% of the videos** we studied had product placement, while **30% of the videos employed humor**.
 -   Approximately **25% of the videos featured either a celebrity or an influencer**.
 -   **Videos promoting brand events drew nearly 20 million views**, while those featuring some form of sexuality or animals also generated well **over 10 million views**.
 -   Creative videos with animations and graphics overlays tend to draw over **11 million views per post**.
-
-## TODO
-
-1.  Add link in conclusion section.
