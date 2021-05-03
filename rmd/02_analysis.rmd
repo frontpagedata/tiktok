@@ -906,7 +906,7 @@ tiktok_embed("https://www.tiktok.com/@starbucks/video/6899106767947533574 ")
 
 ## [TODOS, Ideas & Questions]
 
-- Maybe add a "interesting tidbits" section at the end with stats about things like hashtags, text description and so on?
+-   Maybe add a "interesting tidbits" section at the end with stats about things like hashtags, text description and so on?
 
 ### Brands
 
